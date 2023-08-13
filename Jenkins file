@@ -1,0 +1,40 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build and Test') {
+            steps {
+                script {
+                    def mvnHome = tool name: 'Maven', type: 'hudson.tasks.Maven$MavenInstallation'
+                    def mvnCmd = "${mvnHome}/bin/mvn"
+                    sh "${mvnCmd} clean package"
+                }
+            }
+        }
+
+        stage('Deploy to Tomcat') {
+            steps {
+                script {
+                    def tomcatUser = 'your-tomcat-username'
+                    def tomcatPassword = 'your-tomcat-password'
+                    def tomcatUrl = 'http://your-tomcat-server:8080'
+
+                    def warFileName = 'MyWebApp.war'
+                    def tomcatDeployDir = 'webapps/'
+
+                    def curlCommand = "curl -v -u ${tomcatUser}:${tomcatPassword} --upload-file target/${warFileName} ${tomcatUrl}/${tomcatDeployDir}"
+
+                    sh curlCommand
+                }
+            }
+        }
+
+        // Add more stages as needed
+    }
+}
